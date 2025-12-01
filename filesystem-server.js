@@ -35,6 +35,12 @@ var Permission = {
     Deny: "deny"
 };
 
+var UploadContentFilter = {
+    All: 0,
+    FilesOnly: 1,
+    FoldersOnly: 2
+};
+
 class AccessDetails {
     constructor(role, rules) {
         this.role = role;
@@ -43,19 +49,20 @@ class AccessDetails {
 }
 
 class AccessPermission {
-    constructor(read, write, writeContents, copy, download, upload, message) {
+    constructor(read, write, writeContents, copy, download, upload, message, uploadContentFilter) {
         this.read = read;
         this.write = write;
         this.writeContents = writeContents;
         this.copy = copy;
         this.download = download;
         this.upload = upload;
-        this.message = message
+        this.message = message;
+        this.uploadContentFilter = uploadContentFilter;
     }
 }
 
 class AccessRules {
-    constructor(path, role, read, write, writeContents, copy, download, upload, isFile, message) {
+    constructor(path, role, read, write, writeContents, copy, download, upload, isFile, message, uploadContentFilter) {
         this.path = path;
         this.role = role;
         this.read = read;
@@ -65,7 +72,8 @@ class AccessRules {
         this.download = download;
         this.upload = upload;
         this.isFile = isFile;
-        this.message = message
+        this.message = message;
+        this.uploadContentFilter = uploadContentFilter;
     }
 }
 /**
@@ -761,6 +769,9 @@ function updateRules(filePermission, accessRule) {
     filePermission.read = hasPermission(accessRule.read);
     filePermission.upload = hasPermission(accessRule.read) && hasPermission(accessRule.upload);
     filePermission.message = getMessage(accessRule);
+    if (typeof accessRule.uploadContentFilter !== "undefined" && accessRule.uploadContentFilter !== null) {
+        filePermission.uploadContentFilter = accessRule.uploadContentFilter;
+    }
     return filePermission;
 }
 
@@ -769,7 +780,7 @@ function getPathPermission(path, isFile, name, filepath, contentRootPath, filter
 }
 
 function getPermission(filepath, name, isFile, contentRootPath, filterPath) {
-    var filePermission = new AccessPermission(true, true, true, true, true, true, "");
+    var filePermission = new AccessPermission(true, true, true, true, true, true, "", UploadContentFilter.All);
     if (accessDetails == null) {
         return null;
     } else {
@@ -1124,7 +1135,11 @@ app.post('/', function (req, res) {
         var data = parsedData.rules;
         var accessRules = [];
         for (var i = 0; i < data.length; i++) {
-            var rule = new AccessRules(data[i].path, data[i].role, data[i].read, data[i].write, data[i].writeContents, data[i].copy, data[i].download, data[i].upload, data[i].isFile, data[i].message);
+            var rule = new AccessRules(data[i].path, data[i].role, data[i].read, data[i].write, data[i].writeContents, data[i].copy, data[i].download, data[i].upload, data[i].isFile, data[i].message,
+                typeof data[i].uploadContentFilter === "string"
+                    ? UploadContentFilter[data[i].uploadContentFilter] ?? UploadContentFilter.All
+                    : (Number.isInteger(data[i].uploadContentFilter) ? data[i].uploadContentFilter : UploadContentFilter.All)
+            );
             accessRules.push(rule);
         }
         if (accessRules.length == 1 && accessRules[0].path == undefined) {
