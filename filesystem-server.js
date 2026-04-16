@@ -50,7 +50,7 @@ class AccessPermission {
         this.copy = copy;
         this.download = download;
         this.upload = upload;
-        this.message = message;
+        this.message = message
     }
 }
 
@@ -65,7 +65,7 @@ class AccessRules {
         this.download = download;
         this.upload = upload;
         this.isFile = isFile;
-        this.message = message;
+        this.message = message
     }
 }
 /**
