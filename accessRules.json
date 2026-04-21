@@ -1,6 +1,0 @@
-{
-    "role": "Document Manager",
-    "rules":[
-        {"path": "/test/*.*", "role": "Document Manager", "read": "allow", "write": "allow", "writeContents": "allow", "copy": "allow", "download": "allow", "upload": "allow", "isFile": false, "message": "", "uploadContentFilter": "FoldersOnly"}
-    ]
-}
